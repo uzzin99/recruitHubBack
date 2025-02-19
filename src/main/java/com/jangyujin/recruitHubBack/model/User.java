@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 @Table(name = "user")
 public class User{
 

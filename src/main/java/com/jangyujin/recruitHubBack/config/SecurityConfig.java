@@ -1,19 +1,21 @@
 package com.jangyujin.recruitHubBack.config;
 
-import com.jangyujin.recruitHubBack.config.auth.PrincipalDetailsService;
+import com.jangyujin.recruitHubBack.config.jwt.JwtAuthenticationFilter;
+import com.jangyujin.recruitHubBack.config.jwt.JwtTokenProvider;
+import com.jangyujin.recruitHubBack.config.jwt.JwtAuthenticationFailureHandler;
+import com.jangyujin.recruitHubBack.config.jwt.JwtAuthenticationSuccessHandler;
 import com.jangyujin.recruitHubBack.config.oauth.PrincipalOauth2UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //@Configuration
 //@EnableWebSecurity
@@ -23,9 +25,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    //@Autowired
     private final PrincipalOauth2UserService principalOauth2UserService;
-    private final PrincipalDetailsService principalDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler;
+    private final JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,17 +43,19 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .loginPage("/loginForm")
                         .loginProcessingUrl("/loginProcess")
-                        .defaultSuccessUrl("/")
+                        .successHandler(jwtAuthenticationSuccessHandler)
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/loginForm")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(principalOauth2UserService)
                         )
-                        .defaultSuccessUrl("/")
-                        .failureUrl("/error")
+                        .successHandler(jwtAuthenticationSuccessHandler)
+                        .failureHandler(jwtAuthenticationFailureHandler)
                 )
-                .csrf(csrf -> csrf.disable()); //  Use lambda DSL for csrf
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
