@@ -1,0 +1,82 @@
+package com.jangyujin.recruitHubBack.config.oauth;
+
+import com.jangyujin.recruitHubBack.config.auth.PrincipalDetails;
+import com.jangyujin.recruitHubBack.config.oauth.provider.GoogleUserInfo;
+import com.jangyujin.recruitHubBack.config.oauth.provider.KakaoUserInfo;
+import com.jangyujin.recruitHubBack.config.oauth.provider.NaverUserInfo;
+import com.jangyujin.recruitHubBack.config.oauth.provider.OAuth2UserInfo;
+import com.jangyujin.recruitHubBack.model.User;
+import com.jangyujin.recruitHubBack.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+
+        OAuth2UserInfo oAuth2UserInfo = null;
+
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+
+        if(registrationId.equals("google")) {
+            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        }else if(registrationId.equals("kakao")) {
+            oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        }else {
+            oAuth2UserInfo = new NaverUserInfo((Map<String, Object>) oAuth2User.getAttributes().get("response"));
+        }
+
+        String provider = oAuth2UserInfo.getProvider();
+        String providerId = oAuth2UserInfo.getProviderId();
+        //String username = oAuth2UserInfo.getName();
+        String username = provider+"_"+providerId;
+        String userImgUrl = oAuth2UserInfo.getUserImgUrl();
+        String email = oAuth2UserInfo.getEmail();
+        String role = "ROLE_USER";
+
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        User userEntity = userOptional.orElseGet(() -> { //userOptional 비어있을 경우 실행되는 코드
+            User newUser = User.builder()
+                    .username(username)
+                    .userImgUrl(userImgUrl)
+                    .email(email)
+                    .role(role)
+                    .provider(provider)
+                    .providerId(providerId)
+                    .build();
+            return userRepository.save(newUser);
+        });
+
+
+
+//        User userEntity = userRepository.findByUsername(username);
+//
+//        if(userEntity == null) {
+//            userEntity = User.builder()
+//                    .username(username)
+//                    .userImgUrl(userImgUrl)
+//                    .email(email)
+//                    .role(role)
+//                    .provider(provider)
+//                    .providerId(providerId)
+//                    .build();
+//            userRepository.save(userEntity);
+//        }
+
+        return new PrincipalDetails(userEntity, oAuth2User.getAttributes());
+    }
+}
