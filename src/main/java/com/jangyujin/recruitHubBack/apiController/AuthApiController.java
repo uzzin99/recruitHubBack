@@ -1,13 +1,17 @@
 package com.jangyujin.recruitHubBack.apiController;
 
 import com.jangyujin.recruitHubBack.config.auth.PrincipalDetails;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/auth/api")
 public class AuthApiController {
     @GetMapping("/test/oauth/login")
     public String testOAuthLogin(Authentication authentication, @AuthenticationPrincipal OAuth2User oauth) {
@@ -22,4 +26,14 @@ public class AuthApiController {
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
         return "세션 정보 확인하기";
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> userInfo(@AuthenticationPrincipal PrincipalDetails principal){
+        if(principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
+        }
+        //System.out.println(principal.getAttributes());
+        return ResponseEntity.ok(principal.getUser());
+    }
+
 }

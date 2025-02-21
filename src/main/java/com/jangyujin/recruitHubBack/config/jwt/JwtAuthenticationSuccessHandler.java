@@ -24,8 +24,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         String jwtToken = jwtTokenProvider.createToken(principalDetails.getUser().getEmail(), principalDetails.getUser().getRole());
 
         //클라이언트에게 JWT 전달
-        response.setHeader("Authorization", "Bearer " + jwtToken);
-        //response.sendRedirect("http://localhost:3000/oauth2/success);
-        response.sendRedirect("http://localhost:8080/");
+        //response.setHeader("Authorization", "Bearer " + jwtToken);
+        response.sendRedirect("http://localhost:3000/oauth2/success?token=" + jwtToken);
+        //response.sendRedirect("http://localhost:8080/");
     }
 }

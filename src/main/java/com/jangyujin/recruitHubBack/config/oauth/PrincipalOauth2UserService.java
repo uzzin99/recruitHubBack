@@ -41,13 +41,13 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         String provider = oAuth2UserInfo.getProvider();
         String providerId = oAuth2UserInfo.getProviderId();
-        //String username = oAuth2UserInfo.getName();
-        String username = provider+"_"+providerId;
+        //String username = provider+"_"+providerId;
+        String username = oAuth2UserInfo.getName();
         String userImgUrl = oAuth2UserInfo.getUserImgUrl();
         String email = oAuth2UserInfo.getEmail();
         String role = "ROLE_USER";
 
-        Optional<User> userOptional = userRepository.findByUsername(username);
+        Optional<User> userOptional = userRepository.findByEmail(email);
 
         User userEntity = userOptional.orElseGet(() -> { //userOptional 비어있을 경우 실행되는 코드
             User newUser = User.builder()
@@ -60,23 +60,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                     .build();
             return userRepository.save(newUser);
         });
-
-
-
-//        User userEntity = userRepository.findByUsername(username);
-//
-//        if(userEntity == null) {
-//            userEntity = User.builder()
-//                    .username(username)
-//                    .userImgUrl(userImgUrl)
-//                    .email(email)
-//                    .role(role)
-//                    .provider(provider)
-//                    .providerId(providerId)
-//                    .build();
-//            userRepository.save(userEntity);
-//        }
-
         return new PrincipalDetails(userEntity, oAuth2User.getAttributes());
     }
 }

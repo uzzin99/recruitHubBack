@@ -32,9 +32,6 @@ public class AuthController {
 
     @PostMapping("/join")
     public String join(UserRequest.JoinDto requestDto) {
-        //비밀번호 암호화
-        //String encPassword = passwordEncoder.encode(requestDto.getPassword());
-
         //DTO → Entity 변환
         User user = User.builder()
                 .username(requestDto.getUsername())
