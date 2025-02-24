@@ -1,0 +1,3 @@
+# src/main/resources/application-dev.yml
+base:
+  url: "http://localhost"

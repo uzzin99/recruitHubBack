@@ -20,7 +20,6 @@ public class PrincipalDetailsService implements UserDetailsService {
 
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("NOT found" + username));
-
         return new PrincipalDetails(user);
     }
 }

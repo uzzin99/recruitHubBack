@@ -2,22 +2,24 @@ package com.jangyujin.recruitHubBack.config.jwt;
 
 import com.jangyujin.recruitHubBack.config.auth.PrincipalDetails;
 import com.jangyujin.recruitHubBack.model.User;
+import com.jangyujin.recruitHubBack.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,28 +31,24 @@ public class JwtTokenProvider {
     private String secretKey;
     private final long validityInMillisecond = 3600000;
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes()); // ✅ SecretKey 객체 생성
-    }
+    @Autowired
+    private UserRepository userRepository;
 
     public String createToken(String email, String role) {
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("role", role);
 
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInMillisecond);
-
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJwt(token);
+            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
@@ -63,14 +61,8 @@ public class JwtTokenProvider {
      * @return 사용자 정보
      */
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJwt(token).getBody();
-
+        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
         String email = claims.getSubject();
-
-        //UserDetails userDetails = new User(email, "", List.of(new SimpleGrantedAuthority("ROLE_" + claims.get("role"))));
-
-        //return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
-        //return new PrincipalDetails(userEntity, oAuth2User.getAttributes());
 
         if (claims.get("role") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
@@ -79,12 +71,12 @@ public class JwtTokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        User user = new User();
-        user.setEmail(email);
-        user.setId(Long.parseLong(claims.get("id").toString()));
-        user.setRole(claims.get("role").toString());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("NOT found" + email));
+
         PrincipalDetails principal = new PrincipalDetails(user);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+
     }
 }
