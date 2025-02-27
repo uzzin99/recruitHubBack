@@ -1,23 +1,22 @@
 package com.jangyujin.recruitHubBack.dto;
 
 import lombok.*;
-
-//@Getter
-//@Setter
-//@AllArgsConstructor
-//@NoArgsConstructor
 public class UserRequest {
 
     @Data
     public static class JoinDto{
+        private String userid;
         private String username;
         private String password;
         private String email;
+        private String phone;
     }
-//    @Builder
-//    public JoinRequestDto(String username, String password, String email){
-//        this.username = username;
-//        this.password = password;
-//        this.email = email;
-//    }
+
+    @Data
+    public static class FindUserDto{
+        private String username;
+        private String phone;
+        private String email;
+    }
+
 }

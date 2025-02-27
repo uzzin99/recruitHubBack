@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 관련 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/", "/error").authenticated()
+                        .requestMatchers("/login", "/", "/error","/join", "/user/find-id", "/email/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(auth -> auth
@@ -80,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(""+baseUrl+":3000")); // Vue 앱 주소
+        configuration.setAllowedOrigins(List.of(""+baseUrl+":3000", baseUrl)); // Vue 앱 주소
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

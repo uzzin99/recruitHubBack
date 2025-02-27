@@ -1,4 +1,4 @@
-package com.jangyujin.recruitHubBack.controller;
+package com.jangyujin.recruitHubBack.controller.auth;
 
 import com.jangyujin.recruitHubBack.config.auth.PrincipalDetails;
 import com.jangyujin.recruitHubBack.dto.UserRequest;
@@ -34,6 +34,7 @@ public class AuthController {
     public String join(UserRequest.JoinDto requestDto) {
         //DTO → Entity 변환
         User user = User.builder()
+                .userid(requestDto.getUserid())
                 .username(requestDto.getUsername())
                 .email(requestDto.getEmail())
                 .password(passwordEncoder.encode(requestDto.getPassword())) // 암호화된 비밀번호 저장
