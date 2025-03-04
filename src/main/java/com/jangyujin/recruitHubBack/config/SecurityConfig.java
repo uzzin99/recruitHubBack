@@ -45,7 +45,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 관련 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/", "/error","/join", "/user/find-id", "/email/api/**").authenticated()
+//                        .requestMatchers("/login", "/", "/error","/join", "/user/find-id", "/email/api/send-code", "/auth/api/").authenticated()
+                        .requestMatchers("/login", "/", "/error", "/email/api/", "/auth/api/").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(auth -> auth

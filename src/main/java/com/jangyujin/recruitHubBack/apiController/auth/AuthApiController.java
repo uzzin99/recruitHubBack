@@ -1,4 +1,4 @@
-package com.jangyujin.recruitHubBack.apiController;
+package com.jangyujin.recruitHubBack.apiController.auth;
 
 import com.jangyujin.recruitHubBack.config.auth.PrincipalDetails;
 import com.jangyujin.recruitHubBack.dto.UserRequest;
