@@ -19,4 +19,11 @@ public class UserRequest {
         private String email;
     }
 
+    @Data
+    public static class ResetPwdDto{
+        private String email;
+        private String pwd;
+        private String confirmPwd;
+    }
+
 }

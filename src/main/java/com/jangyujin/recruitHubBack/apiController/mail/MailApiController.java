@@ -60,7 +60,7 @@ public class MailApiController {
         boolean pass = mailService.checkCode(code, email);
 
         if (pass) {
-            return new ResponseEntity<>("인증에 성공했습니다.", HttpStatus.CREATED);
+            return new ResponseEntity<>("인증에 성공했습니다.", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("인증에 실패했습니다.", HttpStatus.BAD_REQUEST);
         }

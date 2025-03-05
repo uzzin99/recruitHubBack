@@ -15,6 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth/api")
 @RequiredArgsConstructor
@@ -25,11 +28,21 @@ public class AuthApiController {
     private AuthService authService;
     private final PasswordEncoder passwordEncoder;
 
+    @PostMapping("/user/pwd")
+    public ResponseEntity<String> resetPwd(@RequestBody UserRequest.ResetPwdDto resetPwdDto) {
+        try {
+            authService.resetPwd(resetPwdDto);
+            return new ResponseEntity<>("비밀번호 재설정이 완료되었습니다", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("서버 오류가 발생했습니다", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @PostMapping("/join")
     public ResponseEntity<String> joinUser(@RequestBody  UserRequest.JoinDto requestDto) { //@RequestBody를 사용하여 JSON 데이터를 JoinDto로 매핑
         try {
             authService.joinUser(requestDto);
-            return new ResponseEntity<>("회원가입이 완료되었습니다.", HttpStatus.CREATED);
+            return new ResponseEntity<>("회원가입이 완료되었습니다.", HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -39,16 +52,14 @@ public class AuthApiController {
 
     @PostMapping("/user/find-id")
     public ResponseEntity<?> findUserId(@RequestBody UserRequest.FindUserDto findUserDto){
+        System.out.println("11111");
         UserResponse user = authService.findUserId(findUserDto.getUsername(), findUserDto.getPhone());
         if (user != null) {
             return ResponseEntity.ok(user);
         } else {
-            //return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자가 존재하지 않습니다.");
         }
     }
-
-    //@PostMapping("/user/reset-password")
 
     @GetMapping("/test/oauth/login")
     public String testOAuthLogin(Authentication authentication, @AuthenticationPrincipal OAuth2User oauth) {

@@ -62,7 +62,6 @@ public class MailService {
         mailSender.send(message);
 
         // 이메일 인증 요청 시 인증 번호 Redis에 저장 (key = "AuthCode " + Email / value = AuthCode) 유효 시간(5분)동안
-        //redisService.setDataExpire(AUTH_CODE_PREFIX + to, code, 60 * 5L);
         redisService.setDataExpire(code, to, 60 * 5L);
     }
 
