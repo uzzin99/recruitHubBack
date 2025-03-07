@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
-    User findByUserid(String userid);
+    Optional<User> findByUserid(String userid);
 
     @Query(
             "SELECT new com.jangyujin.recruitHubBack.dto.UserResponse(u.userid, u.email) " +
@@ -20,5 +20,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     Optional<UserResponse> findByUsernameAndPhone(@Param("username") String username, @Param("phone") String phone);
 
-    //User findByUsername(String username);
+//    @Query(
+//            "SELECT new com.jangyujin.recruitHubBack.dto.UserResponse(u.userid) " +
+//                    "FROM User u " +
+//                    "WHERE u.email = :email "
+//    )
+//    Optional<User> findByEmailForUserid(@Param("email") String email);
+
 }

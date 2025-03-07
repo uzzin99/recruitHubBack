@@ -1,5 +1,6 @@
 package com.jangyujin.recruitHubBack.service.redis;
 
+import com.jangyujin.recruitHubBack.config.jwt.JwtToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -40,4 +42,23 @@ public class RedisService {
     public void deleteData(String key) {
         redisTemplate.delete(key);
     }
+
+    // 로그인 시 refreshToken 저장
+    public void saveRefreshToken(String username, String refreshToken) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(username, refreshToken, 7, TimeUnit.DAYS);
+    }
+
+    // Reids에서 refreshToken 가져오기
+    public String getRefreshToken(String username) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        return valueOperations.get(username);
+    }
+
+    // RefreshToken 삭제 (로그아웃 시)
+    public void deleteRefreshToken(String username) {
+        redisTemplate.delete(username);
+    }
+
+
 }

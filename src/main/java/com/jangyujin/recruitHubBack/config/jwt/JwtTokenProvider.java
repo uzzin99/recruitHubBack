@@ -19,9 +19,11 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * The type Jwt token provider.
+ */
 @Component
 //@RequiredArgsConstructor
 @Getter
@@ -34,9 +36,59 @@ public class JwtTokenProvider {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * 일반 로그인 JWT 생성 (accessToken)
+     *
+     * @param authentication the authentication
+     * @return the jwt token
+     */
+    public JwtToken createAccessToken(Authentication authentication) {
+        // 권한  가져오기
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        long now = (new Date().getTime());
+        // AccessToken 생성
+        Date accessTokenExpiresIn = new Date(now + 86400000);
+        String accessToken = Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim("auth", authorities)
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+
+        return JwtToken.builder()
+                .grantType("Bearer")
+                .accessToken(accessToken)
+                .build();
+    }
+
+    public String createRefreshToken(Authentication authentication) {
+        // refreshToken 생성
+        long now = (new Date().getTime());
+
+        Date refreshTokenExpiresIn = new Date(now + 604800000);
+
+        String refreshToken = Jwts.builder()
+                .setExpiration(refreshTokenExpiresIn)
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+
+        return refreshToken;
+
+    }
+
+    /**
+     * 소셜 로그인 JWT 토큰 생성
+     *
+     * @param email the email
+     * @param role  the role
+     * @return the string
+     */
     public String createToken(String email, String role) {
         Claims claims = Jwts.claims().setSubject(email);
-        claims.put("role", role);
+        claims.put("auth", role);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -46,6 +98,12 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * JWT Token 유효성 검사
+     *
+     * @param token the token
+     * @return the boolean
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
@@ -56,23 +114,30 @@ public class JwtTokenProvider {
     }
 
     /**
+     * JWT Token 복호화해서, 토큰에 들어있는 정보를 꺼내는 메서드
      *
-     * @param token
+     * @param token the token
      * @return 사용자 정보
      */
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-        String email = claims.getSubject();
+        String username = claims.getSubject();
 
-        if (claims.get("role") == null) {
+        if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
-        List<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("role").toString().split(","))
+        List<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
+        User user;
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("NOT found" + email));
+        if(username.contains("@")) {
+             user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("NOT found" + username));
+        } else {
+            user = userRepository.findByUserid(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("NOT found" + username));
+        }
 
         PrincipalDetails principal = new PrincipalDetails(user);
 

@@ -1,5 +1,6 @@
 package com.jangyujin.recruitHubBack.apiController.mail;
 
+import com.jangyujin.recruitHubBack.model.User;
 import com.jangyujin.recruitHubBack.service.mail.MailService;
 import com.jangyujin.recruitHubBack.service.redis.RedisService;
 import jakarta.mail.MessagingException;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/email/api")
@@ -22,6 +24,12 @@ public class MailApiController {
     private MailService mailService;
 
 
+    /**
+     * 비밀번호찾기 > 인증코드 전송
+     *
+     * @param request the request
+     * @return the map
+     */
     @PostMapping("/send-code")
     public Map<String, String> sendVerificationCode(@RequestBody Map<String, String> request) {
         Map<String, String> response = new HashMap<>();
@@ -32,11 +40,18 @@ public class MailApiController {
             return response;
         }
 
-        boolean pass = mailService.checkMail(email);
+        //boolean passMail = mailService.checkMail(email);
 
-        if(!pass) {
+        Optional<User> user = mailService.checkMail(email);
+
+        if (!user.isPresent()) {
             response.put("message", "가입된 이메일이 없습니다.");
             return response;
+        } else {
+            if (user.get().getUserid() == null || user.get().getUserid().isEmpty()) {
+                response.put("message", "이메일로 가입된 아이디가 없습니다.");
+                return response;
+            }
         }
 
         try {
@@ -52,6 +67,12 @@ public class MailApiController {
         return response;
     }
 
+    /**
+     * 비밀번호 찾기 > 인증코드 체크 로직
+     *
+     * @param request the request
+     * @return the response entity
+     */
     @PostMapping("/check-code")
     public ResponseEntity<String> checkCode(@RequestBody Map<String, String> request) {
         String code = request.get("code");

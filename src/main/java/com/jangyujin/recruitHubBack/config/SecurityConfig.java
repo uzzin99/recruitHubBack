@@ -49,13 +49,15 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/", "/error", "/email/api/", "/auth/api/").authenticated()
                         .anyRequest().permitAll()
                 )
-                .formLogin(auth -> auth
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .loginPage("/loginForm")
-                        .loginProcessingUrl("/loginProcess")
-                        .successHandler(jwtAuthenticationSuccessHandler)
-                )
+//                .formLogin(auth -> auth
+//                        .usernameParameter("username")
+//                        .passwordParameter("password")
+//                        .loginPage("/loginForm")
+//                        .loginProcessingUrl("/loginProcess")
+//                        .successHandler(jwtAuthenticationSuccessHandler)
+//                )
+                .formLogin(login -> login.disable())
+                .httpBasic(basic -> basic.disable())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/loginForm")
                         .userInfoEndpoint(userInfo -> userInfo

@@ -15,11 +15,12 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.Random;
 
+/**
+ * 메일전송 서비스
+ */
 @Service
 @RequiredArgsConstructor
 public class MailService {
-    //private final JavaMailSender javaMailSender;
-    private static final String AUTH_CODE_PREFIX = "AuthCode ";
 
     @Autowired
     private JavaMailSender mailSender;
@@ -31,26 +32,35 @@ public class MailService {
     @Value("${spring.mail.username}")
     private static String senderEmail;
 
-    //@Value("${spring.mail.auth-code-expiration-millis}")
-    //private long authCodeExpirationMillis;
-
-    public Boolean checkMail(String email) {
+    /**
+     * 비밀번호 찾기 > 이메일 조회
+     *
+     * @param email the email
+     * @return the boolean
+     */
+    public Optional<User> checkMail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-
-        if(user.isPresent()) { // optional null 처리
-            return true;
-        }
-        return false;
+        return user;
     }
 
-
-    // 6자리 랜덤 코드 생성
+    /**
+     * 비밀번호 찾기 > 인증코드 > 6자리 랜덤 코드 생성
+     *
+     * @return the string
+     */
     public String generateVerificationCode() {
         Random random = new Random();
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 
+    /**
+     * 비밀번호 찾기 > 인증코드 > send
+     *
+     * @param to   the to
+     * @param code the code
+     * @throws MessagingException the messaging exception
+     */
     public void sendVerificationEmail(String to, String code) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -65,6 +75,13 @@ public class MailService {
         redisService.setDataExpire(code, to, 60 * 5L);
     }
 
+    /**
+     * 비밀번호 찾기 > 인증코드 체크
+     *
+     * @param code  the code
+     * @param email the email
+     * @return the boolean
+     */
     public boolean checkCode(String code, String email) {
         //code값으로 value(이메일) 가지고오기
         String value = redisService.getData(code);
