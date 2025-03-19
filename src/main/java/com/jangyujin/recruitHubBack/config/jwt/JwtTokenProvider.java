@@ -130,7 +130,6 @@ public class JwtTokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
         User user;
-
         if(username.contains("@")) {
              user = userRepository.findByEmail(username)
                     .orElseThrow(() -> new UsernameNotFoundException("NOT found" + username));

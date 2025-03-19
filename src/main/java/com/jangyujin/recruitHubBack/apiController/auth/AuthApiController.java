@@ -30,11 +30,9 @@ public class AuthApiController {
 
     @PostMapping("/sign-in")
     public JwtToken signIn(@RequestBody UserRequest.LoginDto loginDto) {
+
         String username = loginDto.getUsername();
         String password = loginDto.getPassword();
-
-        System.out.println("username :: " + username);
-        System.out.println("password :: " + password);
 
         JwtToken jwtToken = authService.signIn(username, password);
 

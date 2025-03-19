@@ -47,7 +47,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getUsername() {
-        return user.getUserid();
+        return user.getUsername();
     }
 
     //계정 만료 여부
@@ -81,6 +81,6 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getName() {
-        return null;
+        return user.getUsername();
     }
 }

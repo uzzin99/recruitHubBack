@@ -8,6 +8,9 @@ import com.jangyujin.recruitHubBack.config.oauth.provider.OAuth2UserInfo;
 import com.jangyujin.recruitHubBack.model.User;
 import com.jangyujin.recruitHubBack.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -45,21 +48,20 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         String username = oAuth2UserInfo.getName();
         String userImgUrl = oAuth2UserInfo.getUserImgUrl();
         String email = oAuth2UserInfo.getEmail();
-        String role = "ROLE_USER";
 
         Optional<User> userOptional = userRepository.findByEmail(email);
 
-        User userEntity = userOptional.orElseGet(() -> { //userOptional 비어있을 경우 실행되는 코드
-            User newUser = User.builder()
+        User userEntity = userOptional.orElseGet(() -> {
+            return userRepository.save(User.builder()
                     .username(username)
-                    .userImgUrl(userImgUrl)
                     .email(email)
-                    .role(role)
+                    .role("ROLE_USER")
                     .provider(provider)
                     .providerId(providerId)
-                    .build();
-            return userRepository.save(newUser);
+                    .userImgUrl(userImgUrl)
+                    .build());
         });
+
         return new PrincipalDetails(userEntity, oAuth2User.getAttributes());
     }
 }

@@ -23,7 +23,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-
         //JWT 토큰 생성
         String jwtToken = jwtTokenProvider.createToken(principalDetails.getUser().getEmail(), principalDetails.getUser().getRole());
 

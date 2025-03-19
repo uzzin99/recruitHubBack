@@ -1,5 +1,6 @@
 package com.jangyujin.recruitHubBack.config;
 
+import com.jangyujin.recruitHubBack.config.auth.PrincipalDetailsService;
 import com.jangyujin.recruitHubBack.config.jwt.JwtAuthenticationFilter;
 import com.jangyujin.recruitHubBack.config.jwt.JwtTokenProvider;
 import com.jangyujin.recruitHubBack.config.jwt.JwtAuthenticationFailureHandler;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -32,6 +34,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final PrincipalOauth2UserService principalOauth2UserService;
+    private final PrincipalDetailsService principalDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler;
     private final JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
@@ -56,10 +59,11 @@ public class SecurityConfig {
 //                        .loginProcessingUrl("/loginProcess")
 //                        .successHandler(jwtAuthenticationSuccessHandler)
 //                )
+                //.userDetailsService(principalDetailsService)
                 .formLogin(login -> login.disable())
                 .httpBasic(basic -> basic.disable())
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/loginForm")
+                        //.loginPage("/loginForm")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(principalOauth2UserService)
                         )
